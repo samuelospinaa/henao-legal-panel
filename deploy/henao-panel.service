@@ -1,0 +1,21 @@
+[Unit]
+Description=Panel interno HENAO LEGAL
+After=network.target
+
+[Service]
+Type=simple
+User=henao
+Group=henao
+WorkingDirectory=/srv/henao
+EnvironmentFile=/srv/henao/.env
+ExecStart=/srv/henao/.venv/bin/gunicorn app.main:app \
+    -k uvicorn.workers.UvicornWorker \
+    -w 1 \
+    -b 127.0.0.1:8000 \
+    --timeout 300 \
+    --access-logfile - --error-logfile -
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ic %}
+{% block titulo %}Documentos · {{ caso.talento_nombre }}{% endblock %}
+{% block contenido %}
+
+<p class="migas"><a href="/casos/{{ caso.id }}">{{ ic.icono("arrow", "ico-atras") }} {{ caso.talento_nombre }}</a></p>
+
+{% include "intake/_progreso.html" %}
+
+{% set subidos = adjuntos_por_item | length %}
+<div class="tarjeta">
+  <div class="encabezado encabezado-compacto">
+    <div>
+      <span class="eyebrow">Intake &middot; paso {{ paso }} de {{ total_pasos }}</span>
+      <h1>7. Documentos a adjuntar</h1>
+    </div>
+    <span class="chip-mini {% if subidos == checklist | length %}ok{% endif %}">{{ ic.icono("upload") }} {{ subidos }}/{{ checklist | length }} subidos</span>
+  </div>
+  <p class="tenue">Sube lo que el talento tenga disponible. Si no tiene un documento, dejalo sin adjuntar — eso tambien es informacion util para el diagnostico.</p>
+
+  <ul class="checklist">
+    {% for item in checklist %}
+      {% set adjunto = adjuntos_por_item.get(item.key) %}
+      <li class="checklist-item {% if adjunto %}subido{% endif %}">
+        <div class="checklist-info">
+          <span class="checklist-punto {% if adjunto %}listo{% endif %}">{% if adjunto %}{{ ic.icono("check") }}{% endif %}</span>
+          <strong>{{ item.label }}</strong>
+          {% if item.ayuda %}<span class="tenue"> — {{ item.ayuda }}</span>{% endif %}
+          {% if adjunto %}
+            <div class="tenue">
+              <a href="/casos/{{ caso.id }}/adjuntos/{{ adjunto.id }}">{{ adjunto.filename }}</a>
+              ({{ (adjunto.tamano_bytes / 1024) | round(0, 'floor') | int }} KB)
+            </div>
+          {% endif %}
+        </div>
+        <div class="checklist-acciones">
+          <form method="post" action="/casos/{{ caso.id }}/intake/documentos/subir" enctype="multipart/form-data">
+            <input type="hidden" name="item_key" value="{{ item.key }}">
+            <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
+            <button type="submit">{% if adjunto %}Reemplazar{% else %}Subir{% endif %}</button>
+          </form>
+          {% if adjunto %}
+            <form method="post" action="/casos/{{ caso.id }}/intake/documentos/{{ item.key }}/eliminar">
+              <button type="submit" class="link">Quitar</button>
+            </form>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<form method="post" action="/casos/{{ caso.id }}/intake/documentos/observaciones">
+  <div class="tarjeta">
+    <h2>Observaciones adicionales</h2>
+    {% for campo in campos_observaciones %}
+      <div class="campo">
+        <label for="{{ campo.key }}">{{ campo.label }}</label>
+        {% if campo.tipo == "si_no_detalle" %}
+          <select id="{{ campo.key }}" name="{{ campo.key }}">
+            <option value="" {% if not valores.get(campo.key) %}selected{% endif %}>— Sin responder —</option>
+            {% for op in ["Si", "No", "No se"] %}
+              <option value="{{ op }}" {% if valores.get(campo.key) == op %}selected{% endif %}>{{ op }}</option>
+            {% endfor %}
+          </select>
+          <textarea name="{{ campo.detalle_key }}" rows="2" placeholder="{{ campo.ayuda or '' }}">{{ valores.get(campo.detalle_key, "") }}</textarea>
+        {% else %}
+          <textarea id="{{ campo.key }}" name="{{ campo.key }}" rows="3">{{ valores.get(campo.key, "") }}</textarea>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="wizard-nav">
+    <a class="boton" href="/casos/{{ caso.id }}/intake/6">&larr; Anterior</a>
+    <span class="tenue">Paso {{ paso }} de {{ total_pasos }}</span>
+    <button class="primario" type="submit">Finalizar intake <span class="boton-icono">&rarr;</span></button>
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ic %}
+{% block titulo %}Entrar · {{ app_name }}{% endblock %}
+{% block body_class %}pagina-login{% endblock %}
+{% block contenido %}
+<div class="orbes-login" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div class="caja-login">
+  <div class="caja-login-marca">
+    <span class="marca-icono marca-icono-grande" aria-hidden="true"><span></span><span></span><span></span></span>
+  </div>
+  <h1>{{ app_name }}</h1>
+  <p class="caja-login-tagline">Panel legal para talento musical</p>
+  {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+  <form method="post" action="/login">
+    <label>Usuario<input name="username" autocomplete="username" autofocus required></label>
+    <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primario" type="submit">Entrar <span class="boton-icono">&rarr;</span></button>
+  </form>
+  <p class="caja-login-pie">{{ ic.icono("check") }} Acceso privado para el equipo de Henao Legal</p>
+</div>
+{% endblock %}

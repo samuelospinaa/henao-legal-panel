@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ic %}
+{% block titulo %}{{ caso.talento_nombre }} · {{ app_name }}{% endblock %}
+{% block contenido %}
+
+<p class="migas"><a href="/">{{ ic.icono("arrow", "ico-atras") }} Cola de casos</a></p>
+
+<div class="encabezado">
+  <div class="encabezado-talento">
+    <span class="avatar">{{ caso.talento_nombre[0] | upper }}</span>
+    <div>
+      <span class="eyebrow">Caso #{{ "%04d" | format(caso.id) }}</span>
+      <h1>{{ caso.talento_nombre }}</h1>
+    </div>
+  </div>
+</div>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("user") }}</span>
+    <div>
+      <span class="eyebrow">Talento</span>
+      <h2>Intake</h2>
+    </div>
+  </div>
+  <div class="acciones">
+    <a class="boton" href="/casos/{{ caso.id }}/intake/{{ caso.intake_paso if not caso.intake_completo else 1 }}">
+      {% if caso.intake_completo %}Editar intake{% else %}Continuar intake (paso {{ caso.intake_paso }}/7){% endif %}
+    </a>
+    {% if caso.intake_completo %}<span class="chip-mini ok">{{ ic.icono("check") }} completo</span>{% endif %}
+  </div>
+  <form method="post" action="/casos/{{ caso.id }}/importar-excel" enctype="multipart/form-data" class="cambio-estado">
+    <label class="ancho">Reemplazar con un Excel de intake
+      <input type="file" name="archivo" accept=".xlsx" required>
+    </label>
+    <button type="submit" onclick="return confirm('Esto reemplaza todas las respuestas actuales del intake con lo que traiga el Excel. ¿Continuar?')">Importar</button>
+  </form>
+</section>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("bolt") }}</span>
+    <div>
+      <span class="eyebrow">Flujo de trabajo</span>
+      <h2>Acciones</h2>
+    </div>
+  </div>
+  <div class="acciones">
+    <form method="post" action="/casos/{{ caso.id }}/diagnostico">
+      <button class="primario">
+        {{ "Regenerar diagnostico" if caso.diagnostico_json else "Generar diagnostico" }}
+        <span class="boton-icono">&rarr;</span>
+      </button>
+    </form>
+
+    {% for tipo, disponible in plantillas.items() %}
+      {% if campos_por_tipo.get(tipo) %}
+        <a class="boton" href="/casos/{{ caso.id }}/documento/nuevo?tipo={{ tipo.value }}"
+           {% if not disponible %}aria-disabled="true" title="Falta la plantilla {{ tipo.value }}.docx"{% endif %}>
+          Generar {{ tipo.value.replace("_", " ") }}
+        </a>
+      {% else %}
+        <form method="post" action="/casos/{{ caso.id }}/documento">
+          <input type="hidden" name="tipo" value="{{ tipo.value }}">
+          <button {% if not disponible %}disabled title="Falta la plantilla {{ tipo.value }}.docx"{% endif %}>
+            Generar {{ tipo.value.replace("_", " ") }}
+          </button>
+        </form>
+      {% endif %}
+    {% endfor %}
+
+    {% if caso.documentos %}
+      <form method="post" action="/casos/{{ caso.id }}/enviar">
+        <button class="primario">Enviar todo al abogado y al talento <span class="boton-icono">&rarr;</span></button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("file") }}</span>
+    <div>
+      <span class="eyebrow">Contratos y actas</span>
+      <h2>Documentos generados {% if caso.documentos %}<span class="chip-mini">{{ caso.documentos | length }}</span>{% endif %}</h2>
+    </div>
+  </div>
+  {% if caso.documentos %}
+    {% if not caso.talento_email %}
+      <p class="tenue">El talento no tiene correo registrado; agrega uno en el intake para poder enviarle documentos.</p>
+    {% endif %}
+    <form method="post" action="/casos/{{ caso.id }}/documentos/enviar">
+      <ul class="lista lista-documentos">
+        {% for doc in caso.documentos %}
+          <li>
+            <label class="fila-documento">
+              <input type="checkbox" name="documento_ids" value="{{ doc.id }}" {% if not caso.talento_email %}disabled{% endif %}>
+              <span class="avatar avatar-mini">{{ ic.icono("file") }}</span>
+              <a href="/documentos/{{ doc.id }}">{{ doc.filename }}</a>
+              <span class="tenue">{{ doc.tipo.value.replace("_", " ") }} &middot; {{ doc.creado_at.strftime("%d/%m/%Y %H:%M") }}</span>
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="acciones">
+        <button class="primario" {% if not caso.talento_email %}disabled{% endif %}>
+          Enviar seleccionados al talento <span class="boton-icono">&rarr;</span>
+        </button>
+      </div>
+    </form>
+  {% else %}
+    <p class="tenue">Sin documentos generados todavia.</p>
+  {% endif %}
+</section>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("chart") }}</span>
+    <div>
+      <span class="eyebrow">Analisis con IA</span>
+      <h2>Diagnostico</h2>
+    </div>
+  </div>
+  {% if diagnostico %}
+    <p class="resumen">{{ diagnostico.resumen_ejecutivo }}</p>
+
+    {% set ns = namespace(si=0, parcial=0, no=0, na=0) %}
+    {% for slug, titulo, area in diagnostico.areas() %}
+      {% for a in area.aspectos %}
+        {% if a.estado == "SI" %}{% set ns.si = ns.si + 1 %}
+        {% elif a.estado == "PARCIAL" %}{% set ns.parcial = ns.parcial + 1 %}
+        {% elif a.estado == "NO" %}{% set ns.no = ns.no + 1 %}
+        {% else %}{% set ns.na = ns.na + 1 %}{% endif %}
+      {% endfor %}
+    {% endfor %}
+    <div class="stats-grid stats-grid-diagnostico">
+      <div class="stat-card"><div class="stat-numero">{{ ns.si }}</div><div class="stat-label">En regla</div></div>
+      <div class="stat-card"><div class="stat-numero">{{ ns.parcial }}</div><div class="stat-label">Parcial</div></div>
+      <div class="stat-card"><div class="stat-numero">{{ ns.no }}</div><div class="stat-label">Pendiente</div></div>
+      <div class="stat-card"><div class="stat-numero">{{ ns.na }}</div><div class="stat-label">No aplica</div></div>
+    </div>
+
+    <table class="tabla-resumen">
+      <thead><tr><th>Area</th><th>Estado</th><th># pendientes</th><th>Prioridad</th></tr></thead>
+      <tbody>
+        {% for fila in diagnostico.resumen_estados() %}
+          <tr>
+            <td>{{ fila.area }}</td>
+            <td><span class="estado-mini est-{{ fila.estado | replace('/', '-') }}">{{ fila.estado }}</span></td>
+            <td>{{ fila.pendientes }}</td>
+            <td>{% if fila.prioridad != "—" %}<span class="riesgo r-{{ fila.prioridad | lower | replace(' ', '-') }}">{{ fila.prioridad }}</span>{% else %}—{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% for slug, titulo, area in diagnostico.areas() %}
+      <article class="area">
+        <h3>{{ titulo }} <span class="estado-mini est-{{ area.estado_global | replace('/', '-') }}">{{ area.estado_global }}</span></h3>
+        <table class="tabla-aspectos">
+          <thead>
+            <tr><th>Aspecto</th><th>Estado</th><th>Prioridad</th><th>Accion requerida</th><th>Responsable</th><th>Plazo</th></tr>
+          </thead>
+          <tbody>
+            {% for a in area.aspectos %}
+              <tr>
+                <td>{{ a.aspecto }}</td>
+                <td><span class="estado-mini est-{{ a.estado | replace('/', '-') }}">{{ a.estado }}</span></td>
+                <td>{% if a.prioridad %}<span class="riesgo r-{{ a.prioridad | lower | replace(' ', '-') }}">{{ a.prioridad }}</span>{% else %}—{% endif %}</td>
+                <td>{{ a.accion_requerida or "—" }}</td>
+                <td class="tenue">{{ a.responsable }}</td>
+                <td class="tenue">{{ a.plazo_sugerido }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="observaciones-area">{{ area.observaciones }}</p>
+      </article>
+    {% endfor %}
+
+    <h3>Plan de accion consolidado</h3>
+    {% set plan = diagnostico.plan_de_accion() %}
+    {% if plan %}
+      <ol class="plan-accion">
+        {% for item in plan %}
+          <li>
+            <span class="riesgo r-{{ (item.prioridad or 'a-tener-en-cuenta') | lower | replace(' ', '-') }}">{{ item.prioridad or "—" }}</span>
+            <strong>{{ item.aspecto }}</strong> ({{ item.area }}) — {{ item.accion_requerida }}
+            <span class="tenue">· {{ item.responsable }} · {{ item.plazo_sugerido }}</span>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="tenue">No hay acciones pendientes: todos los aspectos evaluados estan en SI.</p>
+    {% endif %}
+
+    <p class="tenue">Generado el {{ caso.diagnostico_generado_at.strftime("%d/%m/%Y %H:%M") if caso.diagnostico_generado_at }}</p>
+  {% else %}
+    <p class="tenue">Este caso todavia no tiene diagnostico.</p>
+  {% endif %}
+</section>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("list") }}</span>
+    <div>
+      <span class="eyebrow">Formulario</span>
+      <h2>Respuestas del intake</h2>
+    </div>
+  </div>
+  {% set bloques = intake_legible %}
+  {% if bloques %}
+    {% for bloque in bloques %}
+      <h3>{{ bloque.titulo }}</h3>
+      <table class="intake">
+        {% for label, valor in bloque.filas %}
+          <tr><th>{{ label }}</th><td>{{ valor }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endfor %}
+  {% else %}
+    <p class="tenue">El intake todavia esta vacio.</p>
+  {% endif %}
+</section>
+
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("clip") }}</span>
+    <div>
+      <span class="eyebrow">Soportes</span>
+      <h2>Documentos adjuntos {% if caso.adjuntos %}<span class="chip-mini">{{ caso.adjuntos | length }}</span>{% endif %}</h2>
+    </div>
+  </div>
+  {% if caso.adjuntos %}
+    <ul class="lista lista-adjuntos">
+      {% for a in caso.adjuntos %}
+        <li>
+          <span class="avatar avatar-mini">{{ ic.icono("clip") }}</span>
+          <a href="/casos/{{ caso.id }}/adjuntos/{{ a.id }}">{{ a.filename }}</a>
+          <span class="tenue">{{ (a.tamano_bytes / 1024) | round(0, 'floor') | int }} KB &middot; {{ a.subido_at.strftime("%d/%m/%Y %H:%M") }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="tenue">Sin documentos adjuntos. <a href="/casos/{{ caso.id }}/intake/7">Subir documentos</a>.</p>
+  {% endif %}
+</section>
+
+{% if caso.envios %}
+<section class="tarjeta">
+  <div class="seccion-titulo">
+    <span class="icono-seccion">{{ ic.icono("send") }}</span>
+    <div>
+      <span class="eyebrow">Historial</span>
+      <h2>Envios</h2>
+    </div>
+  </div>
+  <ul class="lista">
+    {% for e in caso.envios %}
+      <li>
+        {{ e.enviado_at.strftime("%d/%m/%Y %H:%M") }} &rarr; {{ e.destinatarios }}
+        {% if e.error %}<span class="riesgo r-alto">error: {{ e.error }}</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% endblock %}

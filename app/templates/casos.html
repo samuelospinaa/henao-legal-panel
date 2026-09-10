@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ic %}
+{% block titulo %}Casos · {{ app_name }}{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <span class="eyebrow">Panel operativo</span>
+    <h1>Cola de casos</h1>
+  </div>
+  <div class="acciones">
+    <button class="primario" type="button" onclick="document.getElementById('form-importar-excel').hidden = !document.getElementById('form-importar-excel').hidden; document.getElementById('form-nuevo-caso').hidden = true">
+      Importar Excel de intake <span class="boton-icono">&rarr;</span>
+    </button>
+    <button type="button" onclick="document.getElementById('form-nuevo-caso').hidden = !document.getElementById('form-nuevo-caso').hidden; document.getElementById('form-importar-excel').hidden = true">
+      + Nuevo caso (manual)
+    </button>
+  </div>
+</div>
+
+<div class="stat-card stat-total stat-solo">
+  <div class="stat-numero">{{ total }}</div>
+  <div class="stat-label">Casos totales</div>
+</div>
+
+<form id="form-importar-excel" method="post" action="/casos/importar-excel" enctype="multipart/form-data" class="tarjeta" hidden>
+  <h2>Importar Excel de intake</h2>
+  <p class="tenue">Sube el Excel que el talento diligencio (formato "Diagnostico legal"). Crea el caso y llena las respuestas automaticamente — revisalas antes de generar el diagnostico.</p>
+  <div class="cambio-estado">
+    <input type="file" name="archivo" accept=".xlsx" required>
+    <button class="primario" type="submit">Importar y crear caso <span class="boton-icono">&rarr;</span></button>
+  </div>
+</form>
+
+<form id="form-nuevo-caso" method="post" action="/casos/nuevo" class="tarjeta" hidden>
+  <h2>Nuevo caso</h2>
+  <div class="cambio-estado">
+    <label class="ancho">Nombre del talento
+      <input name="talento_nombre" required placeholder="Ej: Camila Rios">
+    </label>
+    <label class="ancho">Correo (opcional)
+      <input name="talento_email" type="email" placeholder="talento@correo.com">
+    </label>
+    <button class="primario" type="submit">Crear e iniciar intake <span class="boton-icono">&rarr;</span></button>
+  </div>
+</form>
+
+{% if casos %}
+<table>
+  <thead>
+    <tr><th>#</th><th>Talento</th><th>Email</th><th>Intake</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for caso in casos %}
+    <tr>
+      <td class="tenue">{{ caso.id }}</td>
+      <td>
+        <a href="/casos/{{ caso.id }}" class="fila-talento">
+          <span class="avatar avatar-mini">{{ caso.talento_nombre[0] | upper }}</span>
+          {{ caso.talento_nombre }}
+        </a>
+      </td>
+      <td class="tenue">{{ caso.talento_email or "—" }}</td>
+      <td>
+        {% if caso.intake_completo %}
+          <span class="chip-mini ok">completo</span>
+        {% else %}
+          <a class="chip-mini" href="/casos/{{ caso.id }}/intake">paso {{ caso.intake_paso }}/7</a>
+        {% endif %}
+      </td>
+      <td class="derecha"><a class="boton" href="/casos/{{ caso.id }}">Abrir</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <div class="vacio-tarjeta">
+    <span class="icono-seccion vacio-icono">{{ ic.icono("clipboard") }}</span>
+    <p class="vacio">No hay casos todavia.<br>Importa el Excel de intake de un talento para crear el primero.</p>
+  </div>
+{% endif %}
+{% endblock %}

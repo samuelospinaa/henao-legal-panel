@@ -1,0 +1,7 @@
+.venv/
+data/
+secrets/
+examples/
+scripts/
+deploy/
+.claude/

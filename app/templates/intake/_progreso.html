@@ -1,0 +1,14 @@
+{% set porcentaje = ((paso / total_pasos) * 100) | round(0, 'floor') | int %}
+<div class="progreso-track progreso-wizard"><div class="progreso-fill" style="width: {{ porcentaje }}%"></div></div>
+<nav class="wizard-progreso">
+  {% for s in secciones %}
+    <a class="wizard-paso {% if paso == s.numero %}activo{% endif %} {% if paso > s.numero %}hecho{% endif %}"
+       href="/casos/{{ caso.id }}/intake/{{ s.numero }}">
+      <span class="wizard-num">{{ s.numero }}</span>{{ s.titulo }}
+    </a>
+  {% endfor %}
+  <a class="wizard-paso {% if paso == total_pasos %}activo{% endif %}"
+     href="/casos/{{ caso.id }}/intake/{{ total_pasos }}">
+    <span class="wizard-num">{{ total_pasos }}</span>Documentos
+  </a>
+</nav>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Crect x='7' y='14' width='3.4' height='11' rx='1.7' fill='%23fff'/%3E%3Crect x='14.3' y='7' width='3.4' height='18' rx='1.7' fill='%23fff'/%3E%3Crect x='21.6' y='11' width='3.4' height='14' rx='1.7' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@550;650;750&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="barra">
+    <a class="marca" href="/">
+      <span class="marca-icono" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="marca-texto">{{ app_name }}</span>
+    </a>
+    {% if user %}
+      <div class="barra-derecha">
+        <span class="usuario">{{ user.username }} <span class="usuario-punto">&middot;</span> {{ user.rol.value }}</span>
+        <form method="post" action="/logout"><button class="link">Salir</button></form>
+      </div>
+    {% endif %}
+  </header>
+
+  <main>
+    {% for f in flashes | default([]) %}
+      <div class="flash {{ f.nivel }}">{{ f.texto }}</div>
+    {% endfor %}
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>

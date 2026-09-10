@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "supanova-premium-aesthetic": {
+      "source": "uxjoseph/supanova-design-skill",
+      "sourceType": "github",
+      "skillPath": "soft-skill/SKILL.md",
+      "computedHash": "bcb8de210478d75f35b676fadf2f172dddc5c81bde8ee8dcbefa43747bf78c35"
+    }
+  }
+}

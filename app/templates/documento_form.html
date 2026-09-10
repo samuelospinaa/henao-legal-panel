@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "_iconos.html" as ic %}
+{% block titulo %}Generar {{ tipo.value }} · {{ caso.talento_nombre }}{% endblock %}
+{% block contenido %}
+
+<p class="migas"><a href="/casos/{{ caso.id }}">{{ ic.icono("arrow", "ico-atras") }} {{ caso.talento_nombre }}</a></p>
+
+{% for f in flashes %}<p class="flash {{ f.nivel }}">{{ f.texto }}</p>{% endfor %}
+
+<form method="post" action="/casos/{{ caso.id }}/documento">
+  <input type="hidden" name="tipo" value="{{ tipo.value }}">
+  <div class="tarjeta">
+    <div class="seccion-titulo">
+      <span class="icono-seccion">{{ ic.icono("file") }}</span>
+      <div>
+        <span class="eyebrow">Nuevo documento</span>
+        <h1>{{ tipo.value.replace("_", " ") | capitalize }}</h1>
+      </div>
+    </div>
+    <p class="tenue">
+      Los datos generales de {{ caso.talento_nombre }} ya se toman del caso. Completa aqui solo lo
+      especifico de este contrato (contraparte, monto, cancion, etc). Lo que dejes en blanco queda
+      como un espacio "____" en el documento para completarlo a mano.
+    </p>
+
+    <fieldset class="wizard-grupo">
+      {% for campo in campos %}
+        <div class="campo">
+          <label for="{{ campo.key }}">{{ campo.label }}{% if campo.requerido %} *{% endif %}</label>
+          {% if campo.ayuda %}<p class="ayuda">{{ campo.ayuda }}</p>{% endif %}
+
+          {% if campo.tipo == "area" %}
+            <textarea id="{{ campo.key }}" name="{{ campo.key }}" rows="3" {% if campo.requerido %}required{% endif %}></textarea>
+          {% elif campo.tipo == "select" %}
+            <select id="{{ campo.key }}" name="{{ campo.key }}">
+              <option value="">— Sin seleccionar —</option>
+              {% for op in campo.opciones %}<option value="{{ op }}">{{ op }}</option>{% endfor %}
+            </select>
+          {% else %}
+            <input type="text" id="{{ campo.key }}" name="{{ campo.key }}" {% if campo.requerido %}required{% endif %}>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </fieldset>
+  </div>
+
+  <div class="wizard-nav">
+    <a href="/casos/{{ caso.id }}">Cancelar</a>
+    <button class="primario" type="submit">Generar documento <span class="boton-icono">&rarr;</span></button>
+  </div>
+</form>
+
+{% endblock %}

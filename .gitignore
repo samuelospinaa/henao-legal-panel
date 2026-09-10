@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+secrets/
+data/app.db
+data/documentos/*
+!data/documentos/.gitkeep
+examples
+

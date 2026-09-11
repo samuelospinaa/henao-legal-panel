@@ -9,3 +9,6 @@ data/documentos/*
 !data/documentos/.gitkeep
 examples
 
+
+.vercel
+.env*

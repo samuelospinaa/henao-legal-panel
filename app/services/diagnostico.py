@@ -1,15 +1,21 @@
 """Generacion del diagnostico legal con IA (Groq).
 
-Modelo por defecto: openai/gpt-oss-20b. Groq tambien ofrece gpt-oss-120b
-(mejor razonamiento) al mismo precio de rate-limit por defecto de esta
-cuenta (tier "on_demand": 8000 tokens/minuto, cuenta la suma de prompt +
-max_tokens reservados) — 120b genera respuestas mas largas y se queda sin
-espacio con ese techo, asi que 20b es la opcion confiable hoy. Si se
-actualiza el plan de Groq (Dev Tier) alcanza con subir GROQ_MODEL a
-"openai/gpt-oss-120b" y max_tokens en este archivo; el resto del codigo no
-cambia. Ambos modelos soportan JSON Schema en modo estricto (constrained
-decoding), asi que la respuesta siempre valida contra `DiagnosticoLegal` sin
-necesidad de reintentos por JSON malformado.
+Modelo por defecto: openai/gpt-oss-20b. Es un modelo "razonador": por defecto
+gasta miles de tokens en un bloque de razonamiento interno antes de escribir
+el JSON de salida (ver `completion_tokens_details.reasoning_tokens` en la
+respuesta), tokens que tambien cuentan contra `max_tokens` y contra el limite
+de la cuenta de Groq (tier "on_demand": 8000 tokens/minuto entre prompt +
+completion). Con un intake bien diligenciado, prompt + razonamiento por
+defecto ya se acercan o superan ese limite, y Groq responde 400 "Failed to
+generate JSON" (`json_validate_failed`) porque el JSON se corta a mitad de
+camino, o 413 `rate_limit_exceeded` si la ventana ya estaba usada. Pasar
+`reasoning_effort="low"` baja el razonamiento a un puñado de tokens (~50 en
+pruebas, vs ~3500 por defecto) sin afectar la validez del JSON de salida —
+ese es el ajuste real que evita el error, no subir `max_tokens`. Ambos
+modelos (20b y el mas grande 120b) soportan JSON Schema en modo estricto
+(constrained decoding), asi que si el modelo logra terminar, la respuesta
+siempre valida contra `DiagnosticoLegal` sin necesidad de reintentos por
+JSON malformado.
 """
 
 from __future__ import annotations
@@ -132,6 +138,7 @@ def generar(caso: Caso) -> DiagnosticoLegal:
         },
         temperature=0.2,
         max_tokens=4000,
+        reasoning_effort="low",
     )
 
     contenido = respuesta.choices[0].message.content

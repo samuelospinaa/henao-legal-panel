@@ -8,7 +8,7 @@ data/app.db
 data/documentos/*
 !data/documentos/.gitkeep
 examples
-
-
-.vercel
-.env*
+.claude
+secrets
+.env.local
+.env.example

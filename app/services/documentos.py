@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import re
 import unicodedata
 from datetime import date
@@ -118,13 +119,12 @@ def generar(
     doc = DocxTemplate(str(plantilla))
     doc.render(_contexto(caso, tipo, extra))
 
-    filename = f"{caso.id:04d}-{_slug(caso.talento_nombre)}-{tipo.value}.docx"
-    destino = Path(settings.documentos_dir) / filename
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    doc.save(str(destino))
+    buffer = io.BytesIO()
+    doc.save(buffer)
 
+    filename = f"{caso.id:04d}-{_slug(caso.talento_nombre)}-{tipo.value}.docx"
     registro = Documento(
-        caso_id=caso.id, tipo=tipo, filename=filename, path=str(destino)
+        caso_id=caso.id, tipo=tipo, filename=filename, contenido=buffer.getvalue()
     )
     db.add(registro)
     db.commit()

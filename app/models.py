@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -133,7 +134,10 @@ class Documento(Base):
     caso_id: Mapped[int] = mapped_column(ForeignKey("casos.id", ondelete="CASCADE"))
     tipo: Mapped[TipoDocumento] = mapped_column(Enum(TipoDocumento))
     filename: Mapped[str] = mapped_column(String(255))
-    path: Mapped[str] = mapped_column(String(512))
+    # Contenido del .docx en binario: en serverless (Vercel) el filesystem es
+    # de solo lectura fuera de /tmp y /tmp no persiste entre invocaciones, asi
+    # que el archivo generado se guarda en la base de datos en vez de en disco.
+    contenido: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     creado_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     caso: Mapped[Caso] = relationship(back_populates="documentos")
@@ -152,7 +156,7 @@ class DocumentoAdjunto(Base):
     # Coincide con ItemChecklist.key en app/intake_schema.py
     item_key: Mapped[str] = mapped_column(String(64))
     filename: Mapped[str] = mapped_column(String(255))
-    path: Mapped[str] = mapped_column(String(512))
+    contenido: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     tamano_bytes: Mapped[int] = mapped_column(default=0)
     subido_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

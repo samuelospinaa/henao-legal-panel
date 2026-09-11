@@ -9,7 +9,6 @@ from pathlib import Path
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.intake_schema import DOCUMENTOS_CHECKLIST
 from app.models import Caso, DocumentoAdjunto
 
@@ -24,12 +23,6 @@ class ArchivoInvalido(ValueError):
 def _slug(texto: str) -> str:
     texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", "-", texto.lower()).strip("-")
-
-
-def _carpeta_caso(caso: Caso) -> Path:
-    carpeta = Path(settings.documentos_dir) / "adjuntos" / f"caso-{caso.id}"
-    carpeta.mkdir(parents=True, exist_ok=True)
-    return carpeta
 
 
 def guardar(db: Session, caso: Caso, item_key: str, archivo: UploadFile) -> DocumentoAdjunto:
@@ -50,14 +43,11 @@ def guardar(db: Session, caso: Caso, item_key: str, archivo: UploadFile) -> Docu
         raise ArchivoInvalido("El archivo esta vacio")
 
     filename = f"{item_key}-{_slug(Path(archivo.filename or 'documento').stem)}{extension}"
-    destino = _carpeta_caso(caso) / filename
-    destino.write_bytes(contenido)
 
     existente = caso.adjunto(item_key)
     if existente:
-        Path(existente.path).unlink(missing_ok=True)
         existente.filename = filename
-        existente.path = str(destino)
+        existente.contenido = contenido
         existente.tamano_bytes = len(contenido)
         db.commit()
         db.refresh(existente)
@@ -67,7 +57,7 @@ def guardar(db: Session, caso: Caso, item_key: str, archivo: UploadFile) -> Docu
         caso_id=caso.id,
         item_key=item_key,
         filename=filename,
-        path=str(destino),
+        contenido=contenido,
         tamano_bytes=len(contenido),
     )
     db.add(registro)
@@ -80,6 +70,5 @@ def eliminar(db: Session, caso: Caso, item_key: str) -> None:
     existente = caso.adjunto(item_key)
     if not existente:
         return
-    Path(existente.path).unlink(missing_ok=True)
     db.delete(existente)
     db.commit()

@@ -15,12 +15,9 @@ necesidad de reintentos por JSON malformado.
 from __future__ import annotations
 
 import json
-import ssl
 from functools import lru_cache
 from typing import Any
 
-import httpx
-import truststore
 from groq import Groq
 
 from app.config import settings
@@ -82,12 +79,7 @@ class GroqNoConfigurado(RuntimeError):
 def _client() -> Groq:
     if not settings.groq_api_key:
         raise GroqNoConfigurado("Falta GROQ_API_KEY en el .env")
-    # Usa el almacen de certificados del sistema (Windows) en vez del bundle
-    # de certifi: en redes con inspeccion TLS (antivirus/corporativas) el
-    # bundle de certifi no trae la CA raiz correspondiente y la conexion
-    # falla con CERTIFICATE_VERIFY_FAILED aunque el SO si confia en ella.
-    contexto_ssl = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    return Groq(api_key=settings.groq_api_key, http_client=httpx.Client(verify=contexto_ssl))
+    return Groq(api_key=settings.groq_api_key)
 
 
 def _forzar_estricto(nodo: Any) -> Any:

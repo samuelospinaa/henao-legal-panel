@@ -3,14 +3,15 @@ checklist de documentos (paso 7), reemplazando el llenado manual del sheet."""
 
 from __future__ import annotations
 
+import mimetypes
+import tempfile
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
 from starlette.datastructures import FormData
 
-from app.config import settings
 from app.db import get_db
 from app.intake_schema import (
     DOCUMENTOS_CHECKLIST,
@@ -77,18 +78,14 @@ async def importar_excel(
         return RedirectResponse("/", status_code=303)
 
     contenido = await archivo.read()
-    tmp = Path(settings.documentos_dir) / "_tmp_importados"
-    tmp.mkdir(parents=True, exist_ok=True)
-    tmp_path = tmp / archivo.filename
-    tmp_path.write_bytes(contenido)
-
-    try:
-        intake, meta = svc_excel.parsear(tmp_path)
-    except svc_excel.ExcelIntakeInvalido as exc:
-        flash(request, str(exc), "error")
-        return RedirectResponse("/", status_code=303)
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp:
+        tmp.write(contenido)
+        tmp.flush()
+        try:
+            intake, meta = svc_excel.parsear(tmp.name)
+        except svc_excel.ExcelIntakeInvalido as exc:
+            flash(request, str(exc), "error")
+            return RedirectResponse("/", status_code=303)
 
     caso = Caso(
         talento_nombre=meta.get("nombre") or Path(archivo.filename).stem,
@@ -121,18 +118,14 @@ async def reimportar_excel(
         return RedirectResponse(f"/casos/{caso_id}", status_code=303)
 
     contenido = await archivo.read()
-    tmp = Path(settings.documentos_dir) / "_tmp_importados"
-    tmp.mkdir(parents=True, exist_ok=True)
-    tmp_path = tmp / archivo.filename
-    tmp_path.write_bytes(contenido)
-
-    try:
-        intake, meta = svc_excel.parsear(tmp_path)
-    except svc_excel.ExcelIntakeInvalido as exc:
-        flash(request, str(exc), "error")
-        return RedirectResponse(f"/casos/{caso_id}", status_code=303)
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp:
+        tmp.write(contenido)
+        tmp.flush()
+        try:
+            intake, meta = svc_excel.parsear(tmp.name)
+        except svc_excel.ExcelIntakeInvalido as exc:
+            flash(request, str(exc), "error")
+            return RedirectResponse(f"/casos/{caso_id}", status_code=303)
 
     caso.intake = intake
     caso.intake_paso = TOTAL_PASOS
@@ -297,6 +290,11 @@ def descargar_adjunto(
     user: User = Depends(requiere_login),
 ):
     adjunto = db.get(DocumentoAdjunto, adjunto_id)
-    if adjunto is None or adjunto.caso_id != caso_id:
+    if adjunto is None or adjunto.caso_id != caso_id or not adjunto.contenido:
         raise HTTPException(404)
-    return FileResponse(adjunto.path, filename=adjunto.filename)
+    media_type = mimetypes.guess_type(adjunto.filename)[0] or "application/octet-stream"
+    return Response(
+        content=adjunto.contenido,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{adjunto.filename}"'},
+    )

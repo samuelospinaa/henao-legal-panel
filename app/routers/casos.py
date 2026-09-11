@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -188,12 +188,12 @@ def descargar(
     from app.models import Documento
 
     doc = db.get(Documento, documento_id)
-    if doc is None:
+    if doc is None or not doc.contenido:
         raise HTTPException(404, "Documento no encontrado")
-    return FileResponse(
-        doc.path,
-        filename=doc.filename,
+    return Response(
+        content=doc.contenido,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{doc.filename}"'},
     )
 
 

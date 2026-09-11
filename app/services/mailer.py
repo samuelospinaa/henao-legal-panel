@@ -9,7 +9,6 @@ from __future__ import annotations
 import base64
 from email.message import EmailMessage
 from functools import lru_cache
-from pathlib import Path
 
 from sqlalchemy.orm import Session
 
@@ -45,7 +44,7 @@ def _service():
 
 
 def _mensaje(
-    destinatarios: list[str], asunto: str, cuerpo: str, adjuntos: list[Path]
+    destinatarios: list[str], asunto: str, cuerpo: str, adjuntos: list[Documento]
 ) -> dict:
     msg = EmailMessage()
     msg["To"] = ", ".join(destinatarios)
@@ -53,12 +52,12 @@ def _mensaje(
     msg["Subject"] = asunto
     msg.set_content(cuerpo)
 
-    for ruta in adjuntos:
+    for doc in adjuntos:
         msg.add_attachment(
-            ruta.read_bytes(),
+            doc.contenido,
             maintype="application",
             subtype="vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename=ruta.name,
+            filename=doc.filename,
         )
     return {"raw": base64.urlsafe_b64encode(msg.as_bytes()).decode()}
 
@@ -75,7 +74,7 @@ def _cuerpo(caso: Caso) -> str:
 
 
 def _enviar(
-    db: Session, caso: Caso, destinatarios: list[str], asunto: str, adjuntos: list[Path]
+    db: Session, caso: Caso, destinatarios: list[str], asunto: str, adjuntos: list[Documento]
 ) -> Envio:
     if not destinatarios:
         raise GmailNoConfigurado("No hay destinatarios para el envio")
@@ -110,7 +109,7 @@ def _enviar(
 def enviar_caso(db: Session, caso: Caso) -> Envio:
     """Envia todos los documentos del caso al abogado y al talento."""
     destinatarios = [e for e in (settings.abogado_email, caso.talento_email) if e]
-    adjuntos = [Path(d.path) for d in caso.documentos if Path(d.path).exists()]
+    adjuntos = [d for d in caso.documentos if d.contenido]
     asunto = f"Diagnostico legal - {caso.talento_nombre}"
     return _enviar(db, caso, destinatarios, asunto, adjuntos)
 
@@ -119,6 +118,6 @@ def enviar_documentos(db: Session, caso: Caso, documentos: list[Documento]) -> E
     """Envia solo los documentos elegidos al correo del talento."""
     if not caso.talento_email:
         raise GmailNoConfigurado("El caso no tiene email del talento")
-    adjuntos = [Path(d.path) for d in documentos if Path(d.path).exists()]
+    adjuntos = [d for d in documentos if d.contenido]
     asunto = f"Documentos - {caso.talento_nombre}"
     return _enviar(db, caso, [caso.talento_email], asunto, adjuntos)

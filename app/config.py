@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # Gmail
     gmail_credentials_file: Path | None = None
     gmail_token_file: Path | None = None
+    # Contenido completo de token.json como string (para serverless: no hay
+    # filesystem persistente donde guardar/leer secrets/gmail_token.json, asi
+    # que en produccion se pasa por variable de entorno en vez de archivo).
+    gmail_token_json: str | None = None
     gmail_sender: str | None = None
     abogado_email: str | None = None
 

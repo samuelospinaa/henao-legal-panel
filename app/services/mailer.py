@@ -1,14 +1,19 @@
-"""Envio por Gmail API (OAuth de usuario, credenciales en disco).
+"""Envio por Gmail API (OAuth de usuario).
 
-Mismo patron del proyecto previo: `credentials.json` de la app + `token.json`
-generado la primera vez con `scripts/autorizar_gmail.py`.
+El token se genera una vez en local con `scripts/autorizar_gmail.py`
+(`secrets/gmail_token.json`). En local se lee de ese archivo; en produccion
+(Vercel) el filesystem es de solo lectura y ese archivo no se sube (esta en
+.gitignore), asi que ahi se configura la variable de entorno
+`GMAIL_TOKEN_JSON` con el contenido completo de token.json en una sola linea.
 """
 
 from __future__ import annotations
 
 import base64
+import json
 from email.message import EmailMessage
 from functools import lru_cache
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
@@ -29,15 +34,32 @@ def _service():
     from googleapiclient.discovery import build
 
     token_file = settings.gmail_token_file
-    if not token_file or not Path(token_file).exists():
+    persistir_en_archivo = False
+
+    if settings.gmail_token_json:
+        try:
+            info = json.loads(settings.gmail_token_json)
+        except json.JSONDecodeError as exc:
+            raise GmailNoConfigurado(f"GMAIL_TOKEN_JSON no es un JSON valido: {exc}") from exc
+        creds = Credentials.from_authorized_user_info(info, SCOPES)
+    elif token_file and Path(token_file).exists():
+        creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
+        persistir_en_archivo = True
+    else:
         raise GmailNoConfigurado(
-            "Falta el token de Gmail. Corre `python scripts/autorizar_gmail.py`."
+            "Falta el token de Gmail. Corre `python scripts/autorizar_gmail.py` "
+            "en local, o configura GMAIL_TOKEN_JSON en produccion."
         )
-    creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
+
     if not creds.valid:
         if creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            Path(token_file).write_text(creds.to_json(), encoding="utf-8")
+            # En produccion (variable de entorno) el token refrescado no se
+            # puede persistir de vuelta: se vuelve a refrescar en la proxima
+            # invocacion "fria", lo cual es normal para un refresh_token que
+            # no expira. Solo se cachea en disco cuando venimos de archivo.
+            if persistir_en_archivo:
+                Path(token_file).write_text(creds.to_json(), encoding="utf-8")
         else:
             raise GmailNoConfigurado("El token de Gmail expiro; vuelve a autorizar.")
     return build("gmail", "v1", credentials=creds)

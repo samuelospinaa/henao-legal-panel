@@ -1,0 +1,59 @@
+{% extends "landing_base.html" %}
+{% block contenido %}
+<main>
+  <section class="hero">
+    <canvas id="ondas" aria-hidden="true"></canvas>
+    <div class="hero-vineta" aria-hidden="true"></div>
+    <div class="hero-cuerpo">
+      <span class="insignia"><i></i> Versión beta</span>
+      <h1>Tu música, <em>legalmente</em> en orden</h1>
+      <p class="hero-sub">Diagnóstico legal con IA y contratos listos para firmar, revisados por los abogados de Henao Legal.</p>
+      <a class="boton-corte" href="/login">[Iniciar sesión o crear cuenta]</a>
+    </div>
+  </section>
+
+  <section class="seccion" id="que-hace">
+    <p class="etiqueta">Qué hace {{ app_name }}</p>
+    <h2>Todo el frente legal de un artista, <em>en un solo lugar</em></h2>
+    <div class="rejilla">
+      <article class="tarjeta">
+        <span class="num">01</span>
+        <h3>Diagnóstico legal con IA</h3>
+        <p>Un formulario guiado recoge tu situación y la IA la revisa en cuatro áreas: composición, másters, contratos previos y registro de obra.</p>
+      </article>
+      <article class="tarjeta">
+        <span class="num">02</span>
+        <h3>Contratos listos para firmar</h3>
+        <p>Prestación de servicios, colaboración, producción fonográfica, autorización de imagen, split sheet y autorización de locación, con las minutas de Henao Legal.</p>
+      </article>
+      <article class="tarjeta">
+        <span class="num">03</span>
+        <h3>Revisión de un abogado</h3>
+        <p>Nada sale sin aprobación: un abogado revisa el diagnóstico y los documentos antes de que lleguen a ti.</p>
+      </article>
+      <article class="tarjeta">
+        <span class="num">04</span>
+        <h3>Todo en un panel</h3>
+        <p>Casos, estados y documentos en un mismo lugar, con envío por correo al talento y a su equipo cuando el caso está aprobado.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="seccion" id="como-funciona">
+    <p class="etiqueta">Cómo funciona</p>
+    <h2>De cero a <em>documentos firmables</em> en tres pasos</h2>
+    <ol class="pasos">
+      <li><span class="num">1</span><div><h3>Cuéntanos tu situación</h3><p>Responde el formulario de intake a tu ritmo; se guarda en cada paso.</p></div></li>
+      <li><span class="num">2</span><div><h3>Recibe tu diagnóstico</h3><p>La IA prepara el análisis y un abogado lo revisa y aprueba.</p></div></li>
+      <li><span class="num">3</span><div><h3>Firma tus contratos</h3><p>Generamos los documentos con tus datos y los enviamos listos para firma electrónica.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="cierre">
+    <h2>Empieza a poner tu <em>catálogo</em> en regla</h2>
+    <a class="boton-corte" href="/login">[Iniciar sesión o crear cuenta]</a>
+    <p class="cierre-nota">¿Buscas un plan? <a href="/precios">Mira los precios</a></p>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/landing.js?v={{ landing_v }}" defer></script>{% endblock %}

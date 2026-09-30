@@ -18,26 +18,29 @@
       </div>
     </div>
     <p class="tenue">
-      Los datos generales de {{ caso.talento_nombre }} ya se toman del caso. Completa aqui solo lo
-      especifico de este contrato (contraparte, monto, cancion, etc). Lo que dejes en blanco queda
+      Los datos de {{ caso.talento_nombre }} vienen prellenados desde el caso: revisalos y completa
+      lo especifico de este contrato (contraparte, monto, cancion, etc). Lo que dejes en blanco queda
       como un espacio "____" en el documento para completarlo a mano.
     </p>
 
     <fieldset class="wizard-grupo">
       {% for campo in campos %}
+        {% set valor = valores.get(campo.key, "") %}
         <div class="campo">
           <label for="{{ campo.key }}">{{ campo.label }}{% if campo.requerido %} *{% endif %}</label>
           {% if campo.ayuda %}<p class="ayuda">{{ campo.ayuda }}</p>{% endif %}
 
           {% if campo.tipo == "area" %}
-            <textarea id="{{ campo.key }}" name="{{ campo.key }}" rows="3" {% if campo.requerido %}required{% endif %}></textarea>
+            <textarea id="{{ campo.key }}" name="{{ campo.key }}" rows="3" {% if campo.requerido %}required{% endif %}>{{ valor }}</textarea>
           {% elif campo.tipo == "select" %}
             <select id="{{ campo.key }}" name="{{ campo.key }}">
               <option value="">— Sin seleccionar —</option>
-              {% for op in campo.opciones %}<option value="{{ op }}">{{ op }}</option>{% endfor %}
+              {% for op in campo.opciones %}<option value="{{ op }}" {% if op == valor %}selected{% endif %}>{{ op }}</option>{% endfor %}
             </select>
+          {% elif campo.tipo == "fecha" %}
+            <input type="date" id="{{ campo.key }}" name="{{ campo.key }}" value="{{ valor }}" {% if campo.requerido %}required{% endif %}>
           {% else %}
-            <input type="text" id="{{ campo.key }}" name="{{ campo.key }}" {% if campo.requerido %}required{% endif %}>
+            <input type="text" id="{{ campo.key }}" name="{{ campo.key }}" value="{{ valor }}" {% if campo.requerido %}required{% endif %}>
           {% endif %}
         </div>
       {% endfor %}

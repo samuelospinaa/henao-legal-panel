@@ -70,8 +70,13 @@
     {% endfor %}
 
     {% if caso.documentos %}
-      <form method="post" action="/casos/{{ caso.id }}/enviar">
-        <button class="primario">Enviar todo al abogado y al talento <span class="boton-icono">&rarr;</span></button>
+      <form method="post" action="/casos/{{ caso.id }}/enviar" class="form-envio">
+        <details class="mensaje-envio">
+        <summary>Personalizar el mensaje del correo</summary>
+        <p class="ayuda">Se envia el mensaje de siempre, salvo que lo cambies aqui. Los archivos van adjuntos en ambos casos.</p>
+        <textarea name="mensaje" rows="9">{{ mensaje_defecto }}</textarea>
+      </details>
+      <button class="primario">Enviar todo al abogado y al talento <span class="boton-icono">&rarr;</span></button>
       </form>
     {% endif %}
   </div>
@@ -99,15 +104,35 @@
               <a href="/documentos/{{ doc.id }}">{{ doc.filename }}</a>
               <span class="tenue">{{ doc.tipo.value.replace("_", " ") }} &middot; {{ doc.creado_at.strftime("%d/%m/%Y %H:%M") }}</span>
             </label>
+            {% if user.rol.value == "admin" %}
+              <details class="renombrar">
+                <summary>Renombrar</summary>
+                <span class="renombrar-campos">
+                  <input type="text" name="nombre" form="renombrar-{{ doc.id }}" value="{{ doc.filename[:-5] if doc.filename.lower().endswith('.docx') else doc.filename }}" maxlength="245" aria-label="Nuevo nombre de {{ doc.filename }}" required>
+                  <span class="tenue">.docx</span>
+                  <button type="submit" form="renombrar-{{ doc.id }}">Guardar</button>
+                </span>
+              </details>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
+      <details class="mensaje-envio">
+        <summary>Personalizar el mensaje del correo</summary>
+        <p class="ayuda">Se envia el mensaje de siempre, salvo que lo cambies aqui. Los archivos van adjuntos en ambos casos.</p>
+        <textarea name="mensaje" rows="9">{{ mensaje_defecto }}</textarea>
+      </details>
       <div class="acciones">
         <button class="primario" {% if not caso.talento_email %}disabled{% endif %}>
           Enviar seleccionados al talento <span class="boton-icono">&rarr;</span>
         </button>
       </div>
     </form>
+    {% if user.rol.value == "admin" %}
+      {% for doc in caso.documentos %}
+        <form id="renombrar-{{ doc.id }}" method="post" action="/documentos/{{ doc.id }}/renombrar" hidden></form>
+      {% endfor %}
+    {% endif %}
   {% else %}
     <p class="tenue">Sin documentos generados todavia.</p>
   {% endif %}

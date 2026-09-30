@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    app_name: str = "Tymothy"
+    app_name: str = "Timothy"
     secret_key: str = "dev-secret-cambiar"
     database_url: str = "sqlite:///./data/app.db"
     documentos_dir: Path = BASE_DIR / "data" / "documentos"

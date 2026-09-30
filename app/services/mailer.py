@@ -84,7 +84,8 @@ def _mensaje(
     return {"raw": base64.urlsafe_b64encode(msg.as_bytes()).decode()}
 
 
-def _cuerpo(caso: Caso) -> str:
+def cuerpo_por_defecto(caso: Caso) -> str:
+    """Mensaje generico que acompana los adjuntos si el abogado no lo cambia."""
     return (
         f"Hola {caso.talento_nombre},\n\n"
         "Adjuntamos el diagnostico legal preliminar preparado por HENAO LEGAL a "
@@ -95,8 +96,18 @@ def _cuerpo(caso: Caso) -> str:
     )
 
 
+def _cuerpo(caso: Caso, personalizado: str | None) -> str:
+    texto = (personalizado or "").replace("\r\n", "\n").strip()
+    return texto + "\n" if texto else cuerpo_por_defecto(caso)
+
+
 def _enviar(
-    db: Session, caso: Caso, destinatarios: list[str], asunto: str, adjuntos: list[Documento]
+    db: Session,
+    caso: Caso,
+    destinatarios: list[str],
+    asunto: str,
+    adjuntos: list[Documento],
+    mensaje: str | None = None,
 ) -> Envio:
     if not destinatarios:
         raise GmailNoConfigurado("No hay destinatarios para el envio")
@@ -111,7 +122,7 @@ def _enviar(
             .messages()
             .send(
                 userId="me",
-                body=_mensaje(destinatarios, asunto, _cuerpo(caso), adjuntos),
+                body=_mensaje(destinatarios, asunto, _cuerpo(caso, mensaje), adjuntos),
             )
             .execute()
         )
@@ -128,18 +139,21 @@ def _enviar(
     return envio
 
 
-def enviar_caso(db: Session, caso: Caso) -> Envio:
-    """Envia todos los documentos del caso al abogado y al talento."""
+def enviar_caso(db: Session, caso: Caso, mensaje: str | None = None) -> Envio:
+    """Envia todos los documentos del caso al abogado y al talento. `mensaje`
+    reemplaza el cuerpo generico; vacio o None usa el generico."""
     destinatarios = [e for e in (settings.abogado_email, caso.talento_email) if e]
     adjuntos = [d for d in caso.documentos if d.contenido]
     asunto = f"Diagnostico legal - {caso.talento_nombre}"
-    return _enviar(db, caso, destinatarios, asunto, adjuntos)
+    return _enviar(db, caso, destinatarios, asunto, adjuntos, mensaje)
 
 
-def enviar_documentos(db: Session, caso: Caso, documentos: list[Documento]) -> Envio:
+def enviar_documentos(
+    db: Session, caso: Caso, documentos: list[Documento], mensaje: str | None = None
+) -> Envio:
     """Envia solo los documentos elegidos al correo del talento."""
     if not caso.talento_email:
         raise GmailNoConfigurado("El caso no tiene email del talento")
     adjuntos = [d for d in documentos if d.contenido]
     asunto = f"Documentos - {caso.talento_nombre}"
-    return _enviar(db, caso, [caso.talento_email], asunto, adjuntos)
+    return _enviar(db, caso, [caso.talento_email], asunto, adjuntos, mensaje)

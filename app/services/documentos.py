@@ -47,9 +47,64 @@ CAMPOS_TABLA: dict[TipoDocumento, dict[str, list[str]]] = {
 }
 
 
+# Partes que aparecen en las plantillas de contratos (prefijos de los campos
+# de `documento_schema._campos_parte`). Para cada una se derivan los textos
+# que cambian segun el genero y el tipo de documento.
+PARTES = ["talento", "contratista", "colaborador", "productor_musical"]
+
+# tipo de documento -> (como se nombra en el texto, abreviatura en la firma)
+DOCUMENTOS_IDENTIDAD = {
+    "Cédula de ciudadanía": ("cédula de ciudadanía", "C.C."),
+    "Cédula de extranjería": ("cédula de extranjería", "C.E."),
+    "Pasaporte": ("pasaporte", "Pasaporte"),
+}
+
+
+def _fecha_larga(d: date) -> str:
+    return f"{d.day} de {MESES[d.month - 1]} de {d.year}"
+
+
+def _fecha_firma(valor: str) -> date:
+    """El formulario manda la fecha como YYYY-MM-DD (input type=date);
+    vacia o invalida se toma la de hoy."""
+    try:
+        return date.fromisoformat(valor)
+    except (TypeError, ValueError):
+        return date.today()
+
+
+def _datos_partes(ctx: dict) -> dict:
+    derivados = {}
+    for parte in PARTES:
+        femenino = ctx.get(f"{parte}_genero") == "Femenino"
+        texto, abrev = DOCUMENTOS_IDENTIDAD.get(
+            ctx.get(f"{parte}_tipo_documento") or "", DOCUMENTOS_IDENTIDAD["Cédula de ciudadanía"]
+        )
+        derivados |= {
+            f"{parte}_identificado": "identificada" if femenino else "identificado",
+            f"{parte}_conocido": "conocida" if femenino else "conocido",
+            f"{parte}_doc_texto": texto,
+            f"{parte}_doc_abrev": abrev,
+        }
+    return derivados
+
+
 def _slug(texto: str) -> str:
     texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", "-", texto.lower()).strip("-") or "talento"
+
+
+def nombre_archivo_valido(nombre: str) -> str:
+    """Normaliza el nombre que escribe el admin: sin rutas ni caracteres que
+    los sistemas de archivos rechazan, espacios colapsados y siempre .docx.
+    Devuelve "" si no queda nada utilizable."""
+    limpio = re.sub(r'[\\/:*?"<>|\x00-\x1f]', "", nombre or "")
+    limpio = re.sub(r"\s+", " ", limpio).strip(" .")
+    if limpio.lower().endswith(".docx"):
+        limpio = limpio[:-5].rstrip(" .")
+    if not limpio:
+        return ""
+    return limpio[:250] + ".docx"
 
 
 def _filas_tabla(texto: str, columnas: list[str]) -> list[dict]:
@@ -76,15 +131,26 @@ def _contexto(caso: Caso, tipo: TipoDocumento, extra: dict[str, str] | None = No
         "talento_documento": caso.talento_documento or "",
         "fecha_intake": caso.fecha_intake.strftime("%d/%m/%Y") if caso.fecha_intake else "",
         "fecha_hoy": hoy.strftime("%d/%m/%Y"),
-        "fecha_larga": f"{hoy.day} de {MESES[hoy.month - 1]} de {hoy.year}",
+        "fecha_larga": _fecha_larga(hoy),
         "intake_legible": resumen_legible(caso.intake),
     }
 
-    if tipo in CAMPOS_TABLA:
-        columnas = CAMPOS_TABLA[tipo]
-        for campo_key, cols in columnas.items():
-            ctx[campo_key] = _filas_tabla(extra.get(campo_key, ""), cols)
-    ctx.update({k: v for k, v in extra.items() if k not in ctx})
+    tablas = CAMPOS_TABLA.get(tipo, {})
+    for campo_key, cols in tablas.items():
+        ctx[campo_key] = _filas_tabla(extra.get(campo_key, ""), cols)
+    # Lo que se escribio en el formulario manda sobre los datos del caso
+    # (ej: talento_nombre corregido); un campo vacio no borra el del caso.
+    for k, v in extra.items():
+        if k not in tablas and (v or k not in ctx):
+            ctx[k] = v
+
+    firma = _fecha_firma(extra.get("fecha_firma", ""))
+    ctx |= {
+        "fecha_firma": _fecha_larga(firma),
+        "fecha_firma_dia": str(firma.day),
+        "fecha_firma_mes_anio": f"{MESES[firma.month - 1]} de {firma.year}",
+    }
+    ctx |= _datos_partes(ctx)
 
     if caso.diagnostico_json:
         diag = DiagnosticoLegal.model_validate(caso.diagnostico_json)
@@ -117,7 +183,8 @@ def generar(
         raise ValueError("El caso todavia no tiene diagnostico generado")
 
     doc = DocxTemplate(str(plantilla))
-    doc.render(_contexto(caso, tipo, extra))
+    # autoescape: un "&" o "<" en un nombre o razon social rompe el XML del .docx.
+    doc.render(_contexto(caso, tipo, extra), autoescape=True)
 
     buffer = io.BytesIO()
     doc.save(buffer)

@@ -1,5 +1,5 @@
 /* =========================================================================
-   Tymothy -- panel legal para talento musical.
+   Timothy -- panel legal para talento musical.
    Sistema de diseno: monocromo (negro / blanco / grises), con acentos
    semanticos discretos (verde/ambar/rojo) solo donde comunican estado.
    Motion: una sola curva "spring" en toda la app. Sombras ultra-difusas
@@ -108,6 +108,8 @@ main { max-width: 1080px; margin: 0 auto; padding: 32px 22px 80px; position: rel
 }
 .marca-texto { transition: opacity var(--dur-fast) var(--ease); }
 .marca:hover .marca-texto { opacity: .8; }
+.marca-by { align-self: flex-end; margin-bottom: 2px; font-size: 10.5px; font-weight: 500; letter-spacing: .01em; color: rgba(255, 255, 255, .5); }
+.marca-by-oscuro { display: block; margin: 4px 0 0; font-size: 11px; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--muted-2); }
 
 .marca-icono { display: inline-flex; align-items: flex-end; gap: 2.5px; height: 16px; }
 .marca-icono span {
@@ -464,3 +466,185 @@ body.pagina-login main > * { animation: caja-entra .6s var(--ease) both; }
 .caja-login .flash { text-align: left; }
 .caja-login-pie { margin: 22px 0 0; font-size: 11.5px; color: var(--muted-2); display: flex; align-items: center; justify-content: center; gap: 6px; }
 .caja-login-pie .ico { width: 12px; height: 12px; }
+
+/* --- Mensaje personalizable del correo --- */
+.mensaje-envio { flex-basis: 100%; margin: 0 0 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); }
+.mensaje-envio summary { cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--ink-soft); }
+.mensaje-envio[open] summary { border-bottom: 1px solid var(--line-soft); }
+.mensaje-envio .ayuda { margin: 10px 14px 6px; color: var(--muted); font-size: 12px; }
+.mensaje-envio textarea { display: block; width: calc(100% - 28px); margin: 0 14px 14px; font: inherit; line-height: 1.5; resize: vertical; }
+.form-envio { flex-basis: 100%; }
+
+/* =========================================================================
+   Tema oscuro -- misma linea que la landing (landing.css): fondo negro,
+   titulos serif, texto en monoespaciada, bordes finos en vez de sombras y
+   botones de esquinas cortadas. Va al final para redefinir los tokens de
+   arriba; los colores de estado (verde/ambar/rojo) se conservan, en version
+   translucida.
+   ========================================================================= */
+:root {
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --ink: #f4f4f2;
+  --ink-soft: rgba(244, 244, 242, .78);
+  --muted: rgba(244, 244, 242, .56);
+  --muted-2: rgba(244, 244, 242, .34);
+
+  --bg: #050505;
+  --paper: #0c0c0d;
+
+  --line: rgba(255, 255, 255, .11);
+  --line-soft: rgba(255, 255, 255, .06);
+  --line-fuerte: rgba(255, 255, 255, .22);
+  --ring: rgba(255, 255, 255, .3);
+
+  /* "negro" pasa a ser el color de acento claro (botones, iconos, barras). */
+  --negro: #f4f4f2;
+  --negro-2: #ffffff;
+  --acento: #f4f4f2;
+  --sobre-acento: #050505;
+
+  --ok-bg: rgba(90, 200, 130, .13); --ok-tx: #86dba5;
+  --err-bg: rgba(240, 110, 110, .13); --err-tx: #f2a0a0;
+  --warn-bg: rgba(240, 190, 90, .13); --warn-tx: #eec46f;
+  --info-bg: rgba(255, 255, 255, .07); --info-tx: rgba(244, 244, 242, .72);
+
+  --r-pill: 3px; --r-lg: 0; --r-md: 0; --r-sm: 0;
+
+  --shadow-xs: 0 0 0 0 transparent;
+  --shadow-sm: 0 0 0 0 transparent;
+  --shadow-md: 0 0 0 0 transparent;
+  --shadow-lg: 0 0 0 0 transparent;
+  --shadow-focus: 0 0 0 2px rgba(255, 255, 255, .4);
+
+  color-scheme: dark;
+}
+
+body { font: 13.5px/1.62 var(--mono); }
+body::before {
+  background:
+    radial-gradient(900px 480px at 12% -8%, rgba(255, 255, 255, .035), transparent 60%),
+    radial-gradient(700px 420px at 108% 6%, rgba(255, 255, 255, .025), transparent 55%);
+}
+::selection { background: rgba(255, 255, 255, .85); color: #050505; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .18); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .3); }
+::placeholder { color: var(--muted-2); }
+
+/* --- Tipografia --- */
+h1, h2, h3, .marca-texto, .caja-login h1, .stat-numero, .avatar {
+  font-family: var(--serif); font-weight: 400;
+}
+h1 { font-size: 38px; line-height: 1.1; letter-spacing: -.02em; }
+h2 { font-size: 24px; letter-spacing: -.012em; }
+h3 { font-size: 19px; letter-spacing: -.008em; }
+h4 { font-weight: 500; letter-spacing: .12em; }
+em { font-style: italic; }
+.eyebrow { font-weight: 500; letter-spacing: .12em; }
+.tenue, .ayuda { font-size: 12.5px; }
+
+/* --- Barra superior --- */
+.barra { background: var(--bg); padding: 16px 24px; box-shadow: 0 1px 0 var(--line); }
+.marca { font-size: 24px; font-weight: 400; letter-spacing: -.02em; }
+.marca-icono { height: 18px; }
+.marca-icono span { width: 4px; background: #fff; }
+.marca-by { font-family: var(--mono); font-size: 10.5px; color: var(--muted-2); margin-bottom: 3px; }
+.usuario { font-size: 12px; }
+
+/* --- Botones: esquinas cortadas --- */
+button, .boton {
+  --c: 8px;
+  font-family: var(--mono); font-weight: 500; font-size: 12.5px; padding: 10px 20px;
+  border-radius: 0; background: rgba(255, 255, 255, .09); color: var(--ink); box-shadow: none;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+button:hover:not(:disabled), .boton:hover {
+  background: rgba(255, 255, 255, .17); box-shadow: none; color: #fff; transform: translateY(-1px);
+}
+button:disabled { opacity: .4; box-shadow: none; }
+button:focus-visible, .boton:focus-visible { background: rgba(255, 255, 255, .24); }
+button.primario, .boton.primario { background: #f4f4f2; color: var(--sobre-acento); box-shadow: none; }
+button.primario:hover:not(:disabled), .boton.primario:hover { background: #fff; color: var(--sobre-acento); box-shadow: none; }
+button.primario:focus-visible, .boton.primario:focus-visible { background: #fff; }
+button.link { clip-path: none; background: none; padding: 0; color: var(--muted); }
+button.link:hover { background: none; color: var(--ink); }
+.boton-icono { border-radius: 0; background: rgba(5, 5, 5, .14); }
+button:not(.primario) .boton-icono, .boton:not(.primario) .boton-icono { background: rgba(255, 255, 255, .12); }
+
+/* --- Superficies: bordes finos --- */
+table { border-radius: 0; box-shadow: 0 0 0 1px var(--line); }
+thead th { background: rgba(255, 255, 255, .03); font-weight: 500; letter-spacing: .12em; }
+tbody tr:hover { background: rgba(255, 255, 255, .03); }
+
+.tarjeta { border-radius: 0; box-shadow: 0 0 0 1px var(--line); }
+.tarjeta::before { display: none; }
+.tarjeta:hover { box-shadow: 0 0 0 1px var(--line-fuerte); }
+.vacio-tarjeta { box-shadow: 0 0 0 1px var(--line); }
+.icono-seccion.vacio-icono { border-radius: 0; }
+.stat-card { box-shadow: 0 0 0 1px var(--line); }
+.stat-card:hover { transform: none; box-shadow: 0 0 0 1px var(--line-fuerte); }
+.stat-card.stat-total { background: var(--negro); color: var(--sobre-acento); box-shadow: none; }
+.stat-card.stat-total .stat-label { color: rgba(5, 5, 5, .6); }
+.stat-numero { font-size: 40px; font-weight: 400; letter-spacing: -.02em; }
+.stats-grid-diagnostico .stat-numero { font-size: 30px; }
+.stat-label { font-weight: 500; letter-spacing: .1em; }
+
+.area { background: rgba(255, 255, 255, .025); box-shadow: 0 0 0 1px var(--line-soft); }
+.area:hover { box-shadow: 0 0 0 1px var(--line); transform: none; }
+.resumen, .observaciones-area { background: rgba(255, 255, 255, .04); }
+.observaciones-area { box-shadow: inset 3px 0 0 var(--muted-2); }
+
+.icono-seccion { background: var(--negro); color: var(--sobre-acento); border-radius: 0; box-shadow: none; }
+.tarjeta:hover .icono-seccion { transform: none; }
+.avatar { background: var(--negro); color: var(--sobre-acento); border-radius: 0; box-shadow: none; font-size: 19px; }
+.avatar-mini { background: var(--info-bg); color: var(--ink-soft); }
+.progreso-track { box-shadow: none; }
+
+/* --- Formularios --- */
+input, select, textarea { background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 1px var(--line); }
+input:hover, select:hover, textarea:hover { box-shadow: inset 0 0 0 1px var(--muted-2); }
+input:focus, select:focus, textarea:focus { background: rgba(255, 255, 255, .07); box-shadow: inset 0 0 0 1.5px var(--negro); }
+input[type="file"] { background: none; box-shadow: none; }
+
+/* --- Estados y chips --- */
+.chip { box-shadow: 0 0 0 1px var(--line); }
+.chip:hover { box-shadow: 0 0 0 1px var(--line-fuerte); }
+.chip.activo { color: var(--sobre-acento); box-shadow: none; }
+.estado { font-weight: 500; letter-spacing: .04em; }
+.estado.e-diagnostico_generado { background: rgba(140, 160, 255, .14); color: #a9b7ff; }
+.estado.e-enviado { background: var(--negro); color: var(--sobre-acento); }
+.wizard-paso { box-shadow: 0 0 0 1px var(--line); }
+.wizard-paso:hover { box-shadow: 0 0 0 1px var(--muted-2); }
+.wizard-paso.activo .wizard-num { color: var(--sobre-acento); }
+.checklist-punto.listo { color: var(--sobre-acento); }
+.flash { box-shadow: 0 0 0 1px var(--line-soft); }
+
+/* --- Login --- */
+.caja-login {
+  border-radius: 0; background: var(--paper); box-shadow: none;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  border: 1px solid var(--line-fuerte);
+}
+.caja-login h1 { font-size: 38px; }
+.caja-login-marca .marca-icono { padding: 0; height: 30px; background: none; box-shadow: none; border-radius: 0; }
+.caja-login-marca .marca-icono span { background: #fff; }
+.caja-login-pie { color: var(--muted-2); }
+.orbes-login span { background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .09), rgba(255, 255, 255, 0) 70%); }
+
+body.pagina-login { background: var(--bg); }
+
+input[type="file"]::file-selector-button { font: inherit; font-size: 12px; margin-right: 10px; padding: 7px 14px; border: 0; background: rgba(255, 255, 255, .12); color: var(--ink); cursor: pointer; }
+input[type="file"]::file-selector-button:hover { background: rgba(255, 255, 255, .2); }
+input[type="file"] { color: var(--muted); }
+
+/* --- Renombrar documento (solo admin) --- */
+.renombrar { margin-left: auto; }
+.renombrar summary { cursor: pointer; font-size: 12px; color: var(--muted); list-style: none; }
+.renombrar summary::-webkit-details-marker { display: none; }
+.renombrar summary:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.renombrar[open] { flex-basis: 100%; margin: 4px 0 2px 36px; }
+.renombrar-campos { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.renombrar-campos input { margin: 0; max-width: 460px; }
+.lista-documentos .fila-documento { width: auto; flex: 1 1 0; min-width: 0; }
+.lista-documentos .fila-documento a { overflow-wrap: anywhere; }

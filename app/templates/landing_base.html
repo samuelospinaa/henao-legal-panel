@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ app_name }} · by Henao Legal{% endblock %}</title>
+  <meta name="description" content="{{ app_name }}: diagnóstico legal con IA y contratos listos para firmar para talento de la industria musical.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Crect x='7' y='14' width='3.4' height='11' rx='1.7' fill='%23fff'/%3E%3Crect x='14.3' y='7' width='3.4' height='18' rx='1.7' fill='%23fff'/%3E%3Crect x='21.6' y='11' width='3.4' height='14' rx='1.7' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/landing.css?v={{ landing_v }}">
+</head>
+<body>
+  <header class="nav">
+    <a class="nav-marca" href="/" aria-label="{{ app_name }} by Henao Legal">
+      <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="nav-nombre">{{ app_name }}</span>
+      <span class="nav-by">by: Henao Legal</span>
+    </a>
+    <nav class="nav-links" aria-label="Principal">
+      <a href="/#que-hace">Qué hace</a>
+      <a href="/#como-funciona">Cómo funciona</a>
+      <a href="/precios">Precios</a>
+    </nav>
+    <a class="nav-entrar" href="/login">Iniciar sesión</a>
+  </header>
+
+  {% block contenido %}{% endblock %}
+
+  <footer class="pie">
+    <div class="pie-marca">
+      <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span>{{ app_name }}</span>
+      <span class="nav-by">by: Henao Legal</span>
+    </div>
+    <p>Panel legal para talento musical. Los documentos generados son borradores sujetos a revisión de un abogado.</p>
+    <p class="pie-copy">&copy; {{ anio }} Henao Legal</p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

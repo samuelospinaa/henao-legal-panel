@@ -1,0 +1,49 @@
+{% extends "landing_base.html" %}
+{% block titulo %}Precios · {{ app_name }} by Henao Legal{% endblock %}
+{% block contenido %}
+<main>
+  <section class="hero hero-corto">
+    <canvas id="ondas" aria-hidden="true"></canvas>
+    <div class="hero-vineta" aria-hidden="true"></div>
+    <div class="hero-cuerpo">
+      <span class="insignia"><i></i> Precios</span>
+      <h1>Un plan para cada <em>etapa</em> de tu carrera</h1>
+      <p class="hero-sub">Empieza con un diagnóstico y crece a medida que tu catálogo lo necesite. Sin permanencia.</p>
+    </div>
+  </section>
+
+  <section class="seccion seccion-precios">
+    <div class="planes">
+      {% for plan in planes %}
+      <article class="plan{% if plan.destacado %} plan-destacado{% endif %}">
+        {% if plan.destacado %}<span class="plan-cinta">Más elegido</span>{% endif %}
+        <h3>{{ plan.nombre }}</h3>
+        <p class="plan-desc">{{ plan.descripcion }}</p>
+        <p class="plan-precio"><span class="monto">{{ plan.precio }}</span><span class="periodo">{{ plan.periodo }}</span></p>
+        <ul>
+          {% for item in plan.incluye %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+        <a class="{% if plan.destacado %}boton-corte{% else %}boton-borde{% endif %}" href="/login">{{ plan.cta }}</a>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="nota-precios">Precios en pesos colombianos (COP), IVA no incluido. Valores de referencia sujetos a cambio antes del lanzamiento.</p>
+  </section>
+
+  <section class="seccion seccion-faq">
+    <p class="etiqueta">Preguntas frecuentes</p>
+    <h2>Antes de <em>empezar</em></h2>
+    <div class="faq">
+      <details><summary>¿Los documentos son válidos legalmente?</summary><p>Se generan a partir de las minutas de Henao Legal y un abogado los revisa antes de enviarlos. Se firman por medios electrónicos, conforme a la Ley 527 de 1999.</p></details>
+      <details><summary>¿Puedo cambiar de plan?</summary><p>Sí, en cualquier momento. El cambio aplica desde el siguiente ciclo de facturación.</p></details>
+      <details><summary>¿Qué pasa con mis datos?</summary><p>Tu información solo se usa para preparar tu diagnóstico y tus documentos, y solo la ve el equipo de Henao Legal.</p></details>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <h2>¿Listo para <em>empezar</em>?</h2>
+    <a class="boton-corte" href="/login">[Iniciar sesión o crear cuenta]</a>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/landing.js?v={{ landing_v }}" defer></script>{% endblock %}

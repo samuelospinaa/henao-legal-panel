@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.db import SessionLocal, init_db
 from app.models import Rol, User
-from app.routers import auth, casos, intake
+from app.routers import auth, casos, intake, publico
 from app.security import hash_password
 
 
@@ -53,6 +53,7 @@ app.mount(
 )
 
 app.include_router(auth.router)
+app.include_router(publico.router)
 app.include_router(casos.router)
 app.include_router(intake.router)
 

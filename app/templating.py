@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
@@ -26,7 +27,17 @@ def _asset_version() -> str:
         return "0"
 
 
+def _landing_version() -> str:
+    """Igual que `_asset_version`, para el CSS/JS de las paginas publicas."""
+    try:
+        return str(max(int((STATIC_DIR / n).stat().st_mtime) for n in ("landing.css", "landing.js")))
+    except FileNotFoundError:
+        return "0"
+
+
 def render(request, plantilla: str, **ctx):
     """Atajo: inyecta request y el usuario de la sesion en todas las vistas."""
     ctx.setdefault("asset_v", _asset_version())
+    ctx.setdefault("landing_v", _landing_version())
+    ctx.setdefault("anio", date.today().year)
     return templates.TemplateResponse(request, plantilla, ctx)

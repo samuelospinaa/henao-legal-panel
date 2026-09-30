@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import User
+from app.models import Rol, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -41,4 +41,11 @@ def requiere_login(user: User | None = Depends(usuario_actual)) -> User:
         raise HTTPException(
             status_code=status.HTTP_303_SEE_OTHER, headers={"Location": "/login"}
         )
+    return user
+
+
+def requiere_admin(user: User = Depends(requiere_login)) -> User:
+    """Dependencia para acciones reservadas al rol admin."""
+    if user.rol != Rol.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo el admin puede hacer esto")
     return user

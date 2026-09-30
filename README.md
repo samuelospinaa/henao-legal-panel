@@ -104,6 +104,20 @@ render. El abogado los reemplaza por las minutas reales conservando las variable
 
 Un botón queda deshabilitado si falta su plantilla.
 
+Las plantillas de contratos (`prestacion_servicios`, `colaboracion_derechos`,
+`produccion_fonografica`, `autorizacion_imagen`, `splitsheet`,
+`autorizacion_espacios`) no se redactan a mano: salen de las minutas reales de
+`examples/` con
+
+```bash
+python scripts/plantillas_desde_ejemplos.py
+```
+
+que copia cada .docx tal cual (formato, numeración, cuadros de firma) y solo
+cambia por variables los datos del negocio. Si se actualiza una minuta en
+`examples/`, se vuelve a correr. Los campos que pide cada contrato están en
+`app/documento_schema.py`.
+
 ## Despliegue en un droplet
 
 ```bash

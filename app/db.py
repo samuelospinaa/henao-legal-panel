@@ -1,16 +1,41 @@
 from collections.abc import Iterator
 from pathlib import Path
 
+import os
+
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
-engine = create_engine(
-    settings.database_url,
-    connect_args={"check_same_thread": False},
-    echo=settings.debug,
-)
+
+def _crear_engine():
+    """Engine segun la base configurada: SQLite (local) o Postgres (produccion).
+
+    - Proveedores como Supabase/Heroku entregan `postgres://` o
+      `postgresql://`; se fuerza el driver psycopg2 que trae requirements.txt.
+    - `check_same_thread` es solo de SQLite: con Postgres rompe la conexion.
+    - En serverless (Vercel) cada invocacion es efimera: sin pool propio
+      (NullPool) para no dejar conexiones abiertas; el pooler del proveedor
+      (ej. Supabase, puerto 6543) hace ese trabajo.
+    """
+    url = make_url(settings.database_url)
+    if url.drivername in ("postgres", "postgresql"):
+        url = url.set(drivername="postgresql+psycopg2")
+
+    opciones: dict = {"echo": settings.debug}
+    if url.get_backend_name() == "sqlite":
+        opciones["connect_args"] = {"check_same_thread": False}
+    else:
+        opciones["pool_pre_ping"] = True
+        if os.environ.get("VERCEL"):
+            opciones["poolclass"] = NullPool
+    return create_engine(url, **opciones)
+
+
+engine = _crear_engine()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

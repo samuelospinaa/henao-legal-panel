@@ -37,7 +37,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)
+# La documentacion automatica (/docs, /redoc, /openapi.json) lista todas las
+# rutas del panel: solo en desarrollo.
+_docs = {} if settings.debug else {"docs_url": None, "redoc_url": None, "openapi_url": None}
+app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan, **_docs)
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,

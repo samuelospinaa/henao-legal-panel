@@ -1,14 +1,57 @@
+# === Secretos y credenciales ==============================================
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+gmail_token.json
+token.json
+credentials.json
+client_secret*.json
+*service-account*.json
+*service_account*.json
+
+# === Bases de datos, datos y logs locales =================================
+*.db
+*.sqlite
+*.sqlite3
+data/*
+!data/documentos/
+data/documentos/*
+!data/documentos/.gitkeep
+*.log
+
+# === Material de clientes (no se publica) =================================
+# Minutas, diagnosticos y formularios reales: contienen nombres, cedulas, NIT,
+# correos y direcciones de terceros.
+examples/
+*.xlsx
+*.xls
+# Generador de plantillas: sus anclas son textos literales de esas minutas.
+scripts/plantillas_desde_ejemplos.py
+# Documento interno del proyecto con el cliente.
+prompt_interfaz_henao_legal.md
+
+# === Despliegue, editor y herramientas ====================================
+.vercel/
+.claude/
+.idea/
+.vscode/
+*.swp
+
+# === Python ===============================================================
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-.env
-secrets/
-data/app.db
-data/documentos/*
-!data/documentos/.gitkeep
-examples
-.claude
-secrets
-.env.local
-.env.example
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Sistema operativo ====================================================
+.DS_Store
+Thumbs.db
+desktop.ini

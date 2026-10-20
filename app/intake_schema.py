@@ -58,8 +58,8 @@ SECCIONES: list[Seccion] = [
             Grupo(
                 "Datos personales y del proyecto",
                 [
-                    Campo("nombre_legal", "Nombre legal completo (como aparece en cedula)", ayuda="Ej: Ivan Calderon Perez"),
-                    Campo("nombre_artistico", "Nombre artistico (stage name)", ayuda="Ej: Ivan Calderon / Iван C."),
+                    Campo("nombre_legal", "Nombre legal completo (como aparece en cedula)", ayuda="Ej: Nombre Apellido Apellido"),
+                    Campo("nombre_artistico", "Nombre artistico (stage name)", ayuda="Ej: Nombre Apellido / Nombre Artistico"),
                     Campo("cedula", "Numero de cedula de ciudadania"),
                     Campo("fecha_nacimiento", "Fecha de nacimiento", ayuda="DD/MM/AAAA"),
                     Campo("ciudad_residencia", "Ciudad y departamento de residencia actual", ayuda="Ej: Valledupar, Cesar"),

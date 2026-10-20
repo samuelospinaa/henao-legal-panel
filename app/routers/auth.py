@@ -3,16 +3,20 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.security import autenticar
+from app.models import User
+from app.security import autenticar, usuario_actual
 from app.templating import render
 
 router = APIRouter()
 
 
 @router.get("/login")
-def login_form(request: Request):
-    if request.session.get("user_id"):
+def login_form(request: Request, user: User | None = Depends(usuario_actual)):
+    if user is not None:
         return RedirectResponse("/", status_code=303)
+    # Cookie de una sesion cuyo usuario ya no existe (ej. se cambio de base):
+    # se descarta; si no, /login y / se redirigirian entre si sin mostrar nada.
+    request.session.clear()
     return render(request, "login.html", user=None)
 
 

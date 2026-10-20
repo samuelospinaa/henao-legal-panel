@@ -7,7 +7,7 @@ El emparejamiento es posicional, no por texto: dentro de cada hoja, las
 preguntas numeradas (columna #) se asignan en orden a los campos de la
 seccion correspondiente en app/intake_schema.py — el orden y la cantidad de
 preguntas por hoja replican exactamente el archivo original (ver
-examples/Diagnostico legal - Ivan Calderon.xlsx), asi que no depende de que
+el Excel de ejemplo de la carpeta examples/), asi que no depende de que
 el titulo de la pregunta coincida caracter a caracter.
 """
 

@@ -56,7 +56,7 @@ def _campos_parte(
                  ayuda='Para redactar "identificado" o "identificada"'),
         CampoDoc(f"{prefix}_tipo_documento", "Tipo de documento", "select",
                  opciones=TIPOS_DOCUMENTO_IDENTIDAD),
-        CampoDoc(f"{prefix}_documento", "Numero de documento", ayuda="Ej: 1.090.443.080"),
+        CampoDoc(f"{prefix}_documento", "Numero de documento", ayuda="Ej: 1.234.567.890"),
     ]
     if nombre_artistico:
         campos.append(CampoDoc(f"{prefix}_nombre_artistico", "Nombre artistico (si aplica)"))
@@ -64,9 +64,9 @@ def _campos_parte(
         CampoDoc(
             f"{prefix}_sociedad",
             "Razon social de la sociedad (si aplica)",
-            ayuda="Dejar en blanco si actua como persona natural. Ej: MAIZAR GROUP S.A.S.",
+            ayuda="Dejar en blanco si actua como persona natural. Ej: Mi Sociedad S.A.S.",
         ),
-        CampoDoc(f"{prefix}_sociedad_nit", "NIT de la sociedad (si aplica)", ayuda="Ej: 901831897-3"),
+        CampoDoc(f"{prefix}_sociedad_nit", "NIT de la sociedad (si aplica)", ayuda="Ej: 900.123.456-7"),
     ]
     if domicilio:
         campos.append(CampoDoc(f"{prefix}_sociedad_domicilio", "Ciudad de domicilio de la sociedad (si aplica)",
@@ -80,8 +80,8 @@ def _campos_activos(interpretes_key: str = "artista_interprete") -> list[CampoDo
     return [
         CampoDoc("fonograma_nombre", "Nombre del fonograma", requerido=True),
         CampoDoc("obra_audiovisual_nombre", "Nombre de la obra audiovisual (si aplica)"),
-        CampoDoc(interpretes_key, "Artista(s) interprete(s)", ayuda="Ej: Marcashi x Amaro x Macklein"),
-        CampoDoc("fecha_lanzamiento", "Fecha de lanzamiento", ayuda='Ej: "11 de junio de 2025". En blanco queda "por definir"'),
+        CampoDoc(interpretes_key, "Artista(s) interprete(s)", ayuda="Ej: Artista A x Artista B"),
+        CampoDoc("fecha_lanzamiento", "Fecha de lanzamiento", ayuda='Ej: "1 de enero de 2026". En blanco queda "por definir"'),
     ]
 
 
@@ -142,7 +142,7 @@ CAMPOS_EXTRA: dict[TipoDocumento, list[CampoDoc]] = {
             "Activos donde se usa la imagen",
             "area",
             requerido=True,
-            ayuda='Una linea por activo: Tipo | Nombre o descripcion | Tipo de participacion. Ej: Videoclip | "El que se lo queda pierde" | Figurante',
+            ayuda='Una linea por activo: Tipo | Nombre o descripcion | Tipo de participacion. Ej: Videoclip | "Nombre de la cancion" | Figurante',
         ),
         *_campos_remuneracion("Remuneracion"),
         FECHA_FIRMA,
@@ -167,15 +167,15 @@ CAMPOS_EXTRA: dict[TipoDocumento, list[CampoDoc]] = {
                  ayuda='En blanco se usa el nombre del talento como "La Compania"'),
         CampoDoc("talento_nombre", "Quien firma por La Compania", requerido=True),
         CampoDoc("locacion_direccion", "Direccion de la locacion", requerido=True,
-                 ayuda="Ej: Carrera 43D # 14a - 115, El Poblado, Medellín"),
+                 ayuda="Ej: Calle 10 # 20-30, Barrio Centro, Medellín"),
         CampoDoc("locacion_ciudad", "Ciudad de la locacion", ayuda="Ej: Medellín, Antioquia, Colombia."),
         CampoDoc("propietario_nombre", "Propietario o encargado de la locacion (quien firma)", requerido=True,
-                 ayuda="Nombre o razon social. Ej: THE YELLOW HOUSE S.A.S."),
-        CampoDoc("monto_pago", "Monto a pagar por el uso del lugar", ayuda='Ej: "1.300.000 COP"'),
+                 ayuda="Nombre o razon social. Ej: Locaciones Ejemplo S.A.S."),
+        CampoDoc("monto_pago", "Monto a pagar por el uso del lugar", ayuda='Ej: "1.000.000 COP"'),
         CampoDoc("titulo_produccion", "Titulo del video o produccion"),
         CampoDoc("artista_interprete", "Artista que se filma"),
         CampoDoc("cancion_titulo", "Cancion que se interpreta en la filmacion"),
-        CampoDoc("fecha_filmacion", "Fecha(s) de filmacion", ayuda="Ej: 17 de junio de 2025"),
+        CampoDoc("fecha_filmacion", "Fecha(s) de filmacion", ayuda="Ej: 15 de febrero de 2026"),
         CampoDoc("hora_filmacion", "Horario de filmacion", ayuda="Ej: 6:00 p.m. a 11:00 p.m."),
         FECHA_FIRMA,
     ],

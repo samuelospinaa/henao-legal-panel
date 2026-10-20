@@ -106,17 +106,11 @@ Un botón queda deshabilitado si falta su plantilla.
 
 Las plantillas de contratos (`prestacion_servicios`, `colaboracion_derechos`,
 `produccion_fonografica`, `autorizacion_imagen`, `splitsheet`,
-`autorizacion_espacios`) no se redactan a mano: salen de las minutas reales de
-`examples/` con
-
-```bash
-python scripts/plantillas_desde_ejemplos.py
-```
-
-que copia cada .docx tal cual (formato, numeración, cuadros de firma) y solo
-cambia por variables los datos del negocio. Si se actualiza una minuta en
-`examples/`, se vuelve a correr. Los campos que pide cada contrato están en
-`app/documento_schema.py`.
+`autorizacion_espacios`) estan en `plantillas/` y se rellenan con los campos de
+`app/documento_schema.py`. Se generaron a partir de las minutas reales del
+despacho con un script interno que **no esta en el repositorio** (sus anclas son
+textos literales de esas minutas, que contienen datos de terceros; la carpeta
+`examples/` tampoco se versiona).
 
 ## Despliegue en un droplet
 
